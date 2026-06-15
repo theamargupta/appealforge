@@ -1,36 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AppealForge — AI Insurance Denial Appeal Generator
 
-## Getting Started
+A free, AI-powered utility that turns a health-insurance denial into a formal, evidence-based
+**appeal letter** you can download as a PDF. Built as the "AI Utility Website with Revenue
+Potential" take-home.
 
-First, run the development server:
+> **Live tool flow:** enter your insurer, the denied procedure, and the denial reason → Claude (or
+> a deterministic fallback) drafts a structured appeal letter → download as PDF / copy / request
+> expert help (a real, persisted lead).
+
+---
+
+## 1. Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in what you have (works with zero config too)
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Works with no keys at all.** Without `ANTHROPIC_API_KEY`, the generator returns a high-quality
+  deterministic template letter, so the app is always demoable.
+- Add `ANTHROPIC_API_KEY` to switch to live Claude generation.
+- Lead capture persists to Supabase when `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` are set (they are
+  in the local `.env.local` setup, pointing at the `appealforge_leads` table).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build && npm start   # production build (type-checked, SSG)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 2. Tech stack & architecture
 
-To learn more about Next.js, take a look at the following resources:
+| Layer | Choice | Why |
+|---|---|---|
+| Framework | **Next.js 16.2.9** (App Router) | Server rendering + native SEO primitives (Metadata API, `sitemap.ts`, `robots.ts`) |
+| Language | TypeScript | Type-safe boundaries |
+| Styling | Tailwind CSS v4 | Fast, consistent, production-grade UI |
+| AI | **Anthropic Claude** (`@anthropic-ai/sdk`) with template fallback | Real AI; never breaks without a key |
+| Data | **Supabase** (Postgres + RLS) | Real, write-only lead capture |
+| PDF | `jsPDF` (client-side) | Letter never leaves the browser |
+| Analytics | GA4 via `@next/third-parties` | First-party, App-Router-native |
+| Deploy | Vercel | One-click from this repo |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Separation of concerns** (clean, single-purpose files):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+config/site.ts        # ALL constants/IDs centralized (brand, analytics, ads, affiliates, form options)
+lib/                  # logic + data only — no JSX
+  anthropic.ts        # Claude call + graceful fallback
+  prompt.ts           # prompt construction
+  appeal-template.ts  # deterministic offline letter
+  pdf.ts              # client PDF export
+  analytics.ts        # typed GA4 event helpers
+  validation.ts       # boundary validation (pure functions)
+  jsonld.ts           # schema.org builders
+  guides.ts           # guide content as data (internal-linking cluster)
+  landing-content.ts  # landing copy reused by UI + JSON-LD (DRY)
+  supabase.ts         # lead persistence client
+components/           # render-only UI
+app/                  # routes, layout, sitemap.ts, robots.ts, api/
+```
 
-## Deploy on Vercel
+API routes validate input, handle failure with contextual errors, and degrade gracefully (the AI
+route always returns a letter; the lead route never 500s when Supabase is simply unconfigured).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 3. Rubric — answered
+
+### 3.1 Landing Page — "Why should Google rank this page?"
+
+This page deserves to rank because it satisfies **search intent better than the alternatives**:
+
+1. **High commercial/urgent intent, underserved niche.** People search exact, desperate phrases —
+   *"how to appeal an Aetna denial for an MRI"*, *"insurance denial appeal letter template"*,
+   *"not medically necessary appeal"*. These are high-intent queries with comparatively weak free
+   tooling. We target them directly with an H1, copy, and guides built around the real query
+   language.
+2. **It's a genuinely useful free tool, not a thin content page.** Google's helpful-content system
+   rewards pages that *let the user accomplish the task*. We produce a downloadable, tailored
+   appeal letter in under two minutes — that's the job the searcher came to do.
+3. **E-E-A-T for a YMYL topic.** Health/insurance is "Your Money or Your Life", where Google demands
+   expertise and trust. We provide a real, named author (`/about`, `Person` schema linking to
+   amargupta.tech + socials), an explicit non-advice disclaimer, citations of the patient's actual
+   ACA/ERISA rights, and a privacy statement (we don't store generator inputs).
+4. **Topic-cluster authority.** The landing page is the hub; three guides form spokes, interlinked
+   both ways. This depth signals subject authority rather than a one-off page.
+5. **Technical excellence.** Fast (SSR/SSG, no client waterfalls), mobile-first, accessible
+   (semantic headings, native `<details>` FAQ), valid structured data, clean canonical URLs.
+
+### 3.2 AI Tool — input → useful output + downloadable report
+
+- **Input:** insurer, plan type, procedure/service, denial reason (the variable that drives the
+  argument), and free-text context. Validated at the API boundary.
+- **Useful output:** a complete, formatted, **reason-specific** appeal letter plus a bullet summary
+  of the strongest arguments. Generated by Claude (`/api/generate`) with a deterministic template
+  fallback so output is guaranteed.
+- **Downloadable report:** one-click **PDF** export (`jsPDF`), generated client-side so sensitive
+  details never leave the browser. Copy-to-clipboard also provided.
+
+### 3.3 SEO
+
+- **Schema markup (JSON-LD):** `Organization` + `WebSite` (sitewide), `WebApplication`, `HowTo`, and
+  `FAQPage` (landing), `Article` + `FAQPage` + `BreadcrumbList` (each guide), `Person` (about). All
+  XSS-escaped via the `<JsonLd>` component.
+- **Sitemap generation:** `app/sitemap.ts` → `/sitemap.xml`, auto-includes every static route **and**
+  every guide (data-driven, so new guides appear automatically).
+- **Internal linking strategy:** hub-and-spoke topic cluster. Landing → guides index → individual
+  guides; every guide links back to the tool (conversion) and to its related guides (`related[]` in
+  `lib/guides.ts`); the footer surfaces all guides on every page. This distributes link equity and
+  builds topical authority.
+- Plus: Metadata API titles/descriptions, canonical URLs on every route, OpenGraph/Twitter cards,
+  and `robots.ts` (allow crawl, block `/api/`, point to sitemap).
+
+### 3.4 Analytics
+
+- **GA4:** wired via `@next/third-parties/google` (`<GoogleAnalytics gaId={…} />`), loads only when
+  `NEXT_PUBLIC_GA_ID` is set.
+- **Search Console verification:** `NEXT_PUBLIC_GSC_VERIFICATION` renders the
+  `google-site-verification` meta tag through the Next Metadata API (`verification.google`). Verify
+  via the HTML-tag method, then submit `/sitemap.xml` in GSC.
+- **Event tracking plan** (typed in `lib/analytics.ts`, fired from the UI):
+
+  | Event | Fires when | Why it matters |
+  |---|---|---|
+  | `appeal_started` | user clicks Generate | top of funnel / engagement |
+  | `appeal_completed` | letter returned (`source: ai\|template`) | core activation metric |
+  | `download_pdf` | PDF downloaded | primary success event |
+  | `copy_letter` | letter copied | secondary success event |
+  | `lead_submit` | expert-help form submitted | **revenue** (lead-gen) |
+  | `affiliate_click` | affiliate resource clicked | **revenue** (affiliate) |
+  | `guide_view` | guide opened | content/SEO engagement |
+
+  Recommended GA4 setup: mark `download_pdf` and `lead_submit` as **key events (conversions)**, then
+  build a funnel `appeal_started → appeal_completed → download_pdf → lead_submit`.
+
+### 3.5 Revenue Plan
+
+**a) AdSense strategy.** Insurance/health/legal are among the **highest-CPC** ad verticals, and this
+audience has urgent commercial intent. Display slots (`<AdSlot>`) sit in non-intrusive positions —
+below the tool result and in-article on guides (where dwell time is high) — never inside the form
+(protects conversion). Set `NEXT_PUBLIC_ADSENSE_CLIENT` to go live; until then slots render labeled
+placeholders. Primary revenue comes from the high-volume, high-CPC organic traffic the SEO cluster
+attracts.
+
+**b) Affiliate strategy.** A contextual "Helpful resources" block recommends services a denied
+patient genuinely needs: **patient-advocacy/claims-help services, health-plan comparison, and
+medical-bill negotiation tools** — categories with established affiliate/referral programs. Links
+are `rel="sponsored"`, and every click fires `affiliate_click` for attribution. Placement is
+post-result (highest intent moment).
+
+**c) Lead-gen strategy.** The highest-value path. After generating a letter, the user can request a
+**free expert review** of their denial. These are warm, qualified, high-intent leads (they have a
+specific denial and have shown intent to act). They persist to Supabase (`appealforge_leads`,
+write-only RLS) and can be sold per-lead to patient-advocacy firms / appeal-service partners, or
+routed to an in-house paid service. This typically out-earns ads per visitor for high-ticket
+verticals like medical claims.
+
+---
+
+## 4. Database (Supabase)
+
+Table `public.appealforge_leads` — **privacy-by-default** for health PII:
+
+- RLS enabled. A single INSERT policy lets `anon`/`authenticated` insert **only** consented,
+  app-sourced leads with a plausible name/email. **No SELECT policy** → leads are write-only from
+  the public app and readable only via the service role / dashboard.
+- Inserts go through the server route `/api/lead` using the publishable key.
+
+---
+
+## 5. Deployment (Vercel)
+
+1. Push this repo to GitHub.
+2. Import into Vercel (framework auto-detected as Next.js).
+3. Set env vars (`.env.example` lists them): `NEXT_PUBLIC_SITE_URL`, `ANTHROPIC_API_KEY`,
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_GA_ID`,
+   `NEXT_PUBLIC_GSC_VERIFICATION`, `NEXT_PUBLIC_ADSENSE_CLIENT`.
+4. Deploy. Then add the domain in Google Search Console and submit `/sitemap.xml`.
+
+---
+
+## 6. Disclaimer
+
+AppealForge provides general information and document-drafting assistance only. It is **not** legal,
+medical, or insurance advice and does not create an attorney–client relationship. Letters should be
+reviewed with a licensed professional before submission.
+
+_Built by [Amar Gupta](https://amargupta.tech) — AI-Powered Full Stack Developer._
