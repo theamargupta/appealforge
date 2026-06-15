@@ -81,6 +81,41 @@ export const denialReasons = [
 export type DenialReasonValue = (typeof denialReasons)[number]["value"];
 
 /**
+ * User-facing generation tiers. We deliberately expose the *benefit* (speed vs. detail),
+ * not the underlying model name — the tier→model mapping is server-side only (lib/anthropic.ts).
+ */
+export const generationTiers = [
+  { value: "standard", label: "Standard", hint: "Fast" },
+  { value: "enhanced", label: "Enhanced", hint: "More detailed" },
+] as const;
+
+export type GenerationTier = (typeof generationTiers)[number]["value"];
+
+/** One-click demo presets — power the "Try a sample" buttons on the tool form. */
+export const appealSamples = [
+  {
+    label: "Try: MRI denial",
+    patientName: "Jane Doe",
+    insurer: "Aetna",
+    planType: "PPO (employer)",
+    procedure: "MRI of the lumbar spine",
+    denialReason: "not_medically_necessary",
+    denialDetails:
+      "Ongoing lower-back pain with numbness down the left leg for 8 weeks; physical therapy and NSAIDs already failed. My physician ordered the MRI to rule out a herniated disc.",
+  },
+  {
+    label: "Try: Humira / step therapy",
+    patientName: "Priya Sharma",
+    insurer: "Anthem Blue Cross Blue Shield",
+    planType: "Employer plan",
+    procedure: "Humira (adalimumab) for rheumatoid arthritis",
+    denialReason: "step_therapy",
+    denialDetails:
+      "I already tried methotrexate for 6 months with no improvement and significant side effects, documented by my rheumatologist.",
+  },
+] as const;
+
+/**
  * Affiliate placements (Rule: revenue config centralized).
  * Replace `url` with real affiliate/referral links before launch.
  */

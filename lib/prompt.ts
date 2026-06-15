@@ -19,6 +19,9 @@ export const APPEAL_SYSTEM_PROMPT = [
   "- Be specific to the stated denial reason. Do NOT invent medical facts, study citations,",
   "  or policy clause numbers — speak in general, true terms the patient can verify.",
   "- Professional, firm, respectful tone. No emojis.",
+  "- Write the letter body in PLAIN TEXT only. No Markdown: no ** for bold, no * for bullets,",
+  "  no # headings, no backticks. The letter is printed verbatim to a PDF.",
+  "- Keep the letter concise and focused — ideally under 400 words (one page). Do not pad.",
   "- Close by requesting a written response within 30 days and noting the right to external review.",
 ].join("\n");
 

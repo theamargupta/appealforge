@@ -1,6 +1,6 @@
 /** Shared domain types for the appeal generator (used by UI, API and logic layers). */
 
-import type { DenialReasonValue } from "@/config/site";
+import type { DenialReasonValue, GenerationTier } from "@/config/site";
 
 export interface AppealInput {
   patientName: string;
@@ -9,6 +9,8 @@ export interface AppealInput {
   denialReason: DenialReasonValue;
   planType: string;
   denialDetails: string;
+  /** User-chosen quality tier (maps to a model server-side; never exposed to the client). */
+  tier: GenerationTier;
 }
 
 export interface AppealResult {

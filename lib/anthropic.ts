@@ -9,7 +9,32 @@ import { buildTemplateAppeal } from "@/lib/appeal-template";
 import { APPEAL_SYSTEM_PROMPT, buildAppealUserPrompt } from "@/lib/prompt";
 import type { AppealInput, AppealResult } from "@/types/appeal";
 
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+// Tier → model mapping lives ONLY here (server-side). The client sends a tier
+// ("standard" | "enhanced") and never sees a model name.
+// Standard = Haiku 4.5 (fast, ~1/3 the output cost). Enhanced = Sonnet 4.6 (more detailed).
+const MODEL_BY_TIER: Record<string, string> = {
+  standard: process.env.ANTHROPIC_MODEL_STANDARD ?? "claude-haiku-4-5",
+  enhanced: process.env.ANTHROPIC_MODEL_ENHANCED ?? "claude-sonnet-4-6",
+};
+
+// Max output tokens. A one-page appeal letter + key points fits comfortably under this;
+// it's a safety cap, not the cost driver (you're billed for tokens actually generated).
+const MAX_TOKENS = 1500;
+
+/**
+ * Strip Markdown emphasis the model may emit (**bold**, *italic*, # headings, `code`).
+ * The letter is plain text — these markers render as literal asterisks in the PDF.
+ */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/`{1,3}/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/(^|[\s(])[*_]([^\s*_])/g, "$1$2");
+}
 
 function parseModelJson(raw: string): { letter: string; keyPoints: string[] } | null {
   const cleaned = raw
@@ -35,11 +60,13 @@ export async function generateAppeal(input: AppealInput): Promise<AppealResult> 
     return buildTemplateAppeal(input);
   }
 
+  const model = MODEL_BY_TIER[input.tier] ?? MODEL_BY_TIER.standard;
+
   try {
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2000,
+      model,
+      max_tokens: MAX_TOKENS,
       system: APPEAL_SYSTEM_PROMPT,
       messages: [{ role: "user", content: buildAppealUserPrompt(input) }],
     });
@@ -60,14 +87,16 @@ export async function generateAppeal(input: AppealInput): Promise<AppealResult> 
     }
 
     return {
-      letter: parsed.letter,
-      keyPoints: parsed.keyPoints.length ? parsed.keyPoints : buildTemplateAppeal(input).keyPoints,
+      letter: stripMarkdown(parsed.letter),
+      keyPoints: (parsed.keyPoints.length ? parsed.keyPoints : buildTemplateAppeal(input).keyPoints).map(
+        stripMarkdown,
+      ),
       source: "ai",
     };
   } catch (error) {
     console.error("[generateAppeal] Claude request failed; using template fallback", {
       insurer: input.insurer,
-      model: MODEL,
+      model,
       error: error instanceof Error ? error.message : String(error),
     });
     return buildTemplateAppeal(input);

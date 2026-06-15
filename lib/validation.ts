@@ -25,6 +25,7 @@ export function validateAppealInput(body: unknown): ValidationResult<AppealInput
   const procedure = str(b.procedure);
   const denialReason = str(b.denialReason);
   const denialDetails = str(b.denialDetails);
+  const tier = b.tier === "enhanced" ? "enhanced" : "standard";
 
   if (!insurer) errors.push("Insurer is required.");
   if (!procedure) errors.push("Procedure or service is required.");
@@ -43,6 +44,7 @@ export function validateAppealInput(body: unknown): ValidationResult<AppealInput
       denialReason: denialReason as AppealInput["denialReason"],
       planType: str(b.planType) || "Commercial / employer plan",
       denialDetails,
+      tier,
     },
   };
 }

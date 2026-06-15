@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { denialReasons, insurers } from "@/config/site";
+import { appealSamples, denialReasons, generationTiers, insurers } from "@/config/site";
 import { track } from "@/lib/analytics";
 import { downloadAppealPdf } from "@/lib/pdf";
 import type { AppealInput, AppealResult } from "@/types/appeal";
@@ -14,6 +14,7 @@ const EMPTY: AppealInput = {
   denialReason: "not_medically_necessary",
   planType: "",
   denialDetails: "",
+  tier: "standard",
 };
 
 export function AppealTool() {
@@ -25,6 +26,20 @@ export function AppealTool() {
 
   function update<K extends keyof AppealInput>(key: K, value: AppealInput[K]) {
     setInput((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function fillSample(sample: (typeof appealSamples)[number]) {
+    setError("");
+    setResult(null);
+    setInput((prev) => ({
+      ...prev, // keep the chosen tier
+      patientName: sample.patientName,
+      insurer: sample.insurer,
+      procedure: sample.procedure,
+      denialReason: sample.denialReason,
+      planType: sample.planType,
+      denialDetails: sample.denialDetails,
+    }));
   }
 
   async function handleGenerate(e: React.FormEvent) {
@@ -79,6 +94,21 @@ export function AppealTool() {
         <p className="mt-1 text-sm text-slate-500">
           Free. No signup. Your details are used only to draft the letter.
         </p>
+
+        {/* Quick-start: auto-fill the form with a realistic example */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-slate-400">Try a sample:</span>
+          {appealSamples.map((sample) => (
+            <button
+              key={sample.label}
+              type="button"
+              onClick={() => fillSample(sample)}
+              className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+            >
+              {sample.label}
+            </button>
+          ))}
+        </div>
 
         <div className="mt-5 space-y-4">
           <Field label="Your name (optional)">
@@ -150,6 +180,30 @@ export function AppealTool() {
               className={inputClass}
             />
           </Field>
+        </div>
+
+        {/* Detail level — benefit-framed; never exposes the underlying model */}
+        <div className="mt-5">
+          <span className="mb-1 block text-sm font-medium text-slate-700">Detail level</span>
+          <div className="inline-flex rounded-lg border border-slate-300 p-0.5">
+            {generationTiers.map((t) => {
+              const active = input.tier === t.value;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => update("tier", t.value)}
+                  aria-pressed={active}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                    active ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {t.label}
+                  <span className={active ? "text-blue-100" : "text-slate-400"}> · {t.hint}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {error && (

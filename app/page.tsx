@@ -48,7 +48,7 @@ export default function HomePage() {
       </section>
 
       <div className="mx-auto max-w-5xl px-4">
-        <AdSlot label="Top of content" />
+        <AdSlot label="Top of content" demo />
       </div>
 
       {/* How it works */}
