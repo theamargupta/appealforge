@@ -54,7 +54,7 @@ export function LeadForm({ context }: LeadFormProps) {
 
   if (status === "success") {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
         <strong>Thanks — we&apos;ve received your request.</strong> A specialist will review your
         denial and reach out by email. Meanwhile, your generated letter is ready to download above.
       </div>
@@ -62,9 +62,10 @@ export function LeadForm({ context }: LeadFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border border-slate-200 bg-white p-5">
-      <h3 className="font-bold text-slate-900">Want an expert to handle your appeal?</h3>
-      <p className="mt-1 text-sm text-slate-500">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-line bg-muted p-5">
+      <p className="eyebrow text-accent">Next step</p>
+      <h3 className="mt-1 font-bold text-foreground">Want an expert to handle your appeal?</h3>
+      <p className="mt-1 text-sm text-subtle">
         Get a free review of your denial from a patient-advocacy specialist. No obligation.
       </p>
 
@@ -73,24 +74,24 @@ export function LeadForm({ context }: LeadFormProps) {
           name="fullName"
           required
           placeholder="Full name"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="rounded-md border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-accent"
         />
         <input
           name="email"
           type="email"
           required
           placeholder="Email address"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="rounded-md border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-accent"
         />
       </div>
       <textarea
         name="caseSummary"
         rows={2}
         placeholder="Briefly, what was denied? (optional)"
-        className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="mt-3 w-full rounded-md border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-accent"
       />
 
-      <label className="mt-3 flex items-start gap-2 text-xs text-slate-500">
+      <label className="mt-3 flex items-start gap-2 text-xs text-subtle">
         <input type="checkbox" name="consent" required className="mt-0.5" />
         <span>I agree to be contacted about my appeal and accept the privacy disclaimer.</span>
       </label>
@@ -100,7 +101,7 @@ export function LeadForm({ context }: LeadFormProps) {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+        className="mt-4 w-full rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-paper transition hover:bg-ink/85 disabled:opacity-60"
       >
         {status === "submitting" ? "Submitting…" : "Request a free review"}
       </button>

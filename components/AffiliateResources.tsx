@@ -7,10 +7,11 @@ import { track } from "@/lib/analytics";
 export function AffiliateResources() {
   return (
     <section aria-labelledby="resources-heading" className="mt-12">
-      <h2 id="resources-heading" className="text-lg font-bold text-slate-900">
-        Helpful resources
+      <p className="eyebrow text-accent">Helpful resources</p>
+      <h2 id="resources-heading" className="mt-2 text-lg font-bold text-foreground">
+        Need more help?
       </h2>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-subtle">
         Independent services that can help with your denial. We may earn a commission.
       </p>
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -21,11 +22,11 @@ export function AffiliateResources() {
             target="_blank"
             rel="sponsored noopener noreferrer"
             onClick={() => track({ name: "affiliate_click", params: { resource: r.name } })}
-            className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:shadow-sm"
+            className="flex flex-col rounded-lg border border-line bg-paper p-4 transition hover:border-accent/40"
           >
-            <span className="font-semibold text-slate-900">{r.name}</span>
-            <span className="mt-1 flex-1 text-sm text-slate-500">{r.blurb}</span>
-            <span className="mt-3 text-sm font-semibold text-blue-600">{r.cta} →</span>
+            <span className="font-semibold text-foreground">{r.name}</span>
+            <span className="mt-1 flex-1 text-sm text-subtle">{r.blurb}</span>
+            <span className="mt-3 text-sm font-semibold text-accent">{r.cta} →</span>
           </a>
         ))}
       </div>

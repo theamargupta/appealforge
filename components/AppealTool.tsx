@@ -88,22 +88,23 @@ export function AppealTool() {
       {/* ---- Input form ---- */}
       <form
         onSubmit={handleGenerate}
-        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        className="rounded-lg border border-line bg-paper p-6"
       >
-        <h2 className="text-lg font-bold text-slate-900">Generate your appeal letter</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="eyebrow text-accent">Input</p>
+        <h2 className="mt-1 text-lg font-bold text-foreground">Generate your appeal letter</h2>
+        <p className="mt-1 text-sm text-subtle">
           Free. No signup. Your details are used only to draft the letter.
         </p>
 
         {/* Quick-start: auto-fill the form with a realistic example */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-slate-400">Try a sample:</span>
+          <span className="text-xs font-medium text-subtle">Try a sample:</span>
           {appealSamples.map((sample) => (
             <button
               key={sample.label}
               type="button"
               onClick={() => fillSample(sample)}
-              className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+              className="rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-xs font-semibold text-accent transition hover:border-accent/50"
             >
               {sample.label}
             </button>
@@ -184,8 +185,8 @@ export function AppealTool() {
 
         {/* Detail level — benefit-framed; never exposes the underlying model */}
         <div className="mt-5">
-          <span className="mb-1 block text-sm font-medium text-slate-700">Detail level</span>
-          <div className="inline-flex rounded-lg border border-slate-300 p-0.5">
+          <span className="mb-1 block text-sm font-medium text-foreground">Detail level</span>
+          <div className="inline-flex rounded-md border border-line p-0.5">
             {generationTiers.map((t) => {
               const active = input.tier === t.value;
               return (
@@ -194,12 +195,12 @@ export function AppealTool() {
                   type="button"
                   onClick={() => update("tier", t.value)}
                   aria-pressed={active}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                    active ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                  className={`rounded px-3 py-1.5 text-sm font-medium transition ${
+                    active ? "bg-ink text-paper" : "text-subtle hover:bg-muted"
                   }`}
                 >
                   {t.label}
-                  <span className={active ? "text-blue-100" : "text-slate-400"}> · {t.hint}</span>
+                  <span className={active ? "text-paper/50" : "text-subtle/70"}> · {t.hint}</span>
                 </button>
               );
             })}
@@ -207,50 +208,54 @@ export function AppealTool() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+          className="mt-5 w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-ink transition hover:bg-accent/90 disabled:opacity-60"
         >
           {loading ? "Drafting your appeal…" : "Generate appeal letter"}
         </button>
       </form>
 
       {/* ---- Result ---- */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-line bg-paper p-6">
         {!result && !loading && (
-          <div className="flex h-full min-h-64 flex-col items-center justify-center text-center text-slate-400">
-            <div className="text-4xl">📄</div>
+          <div className="flex h-full min-h-64 flex-col items-center justify-center text-center text-subtle">
+            <p className="eyebrow text-line">Output</p>
             <p className="mt-3 max-w-xs text-sm">
               Your appeal letter will appear here. Fill in the form and click{" "}
-              <span className="font-medium text-slate-600">Generate</span>.
+              <span className="font-medium text-foreground">Generate</span>.
             </p>
           </div>
         )}
 
         {loading && (
-          <div className="flex h-full min-h-64 animate-pulse flex-col items-center justify-center text-slate-400">
-            <p className="text-sm">Drafting a tailored appeal for your denial…</p>
+          <div className="flex h-full min-h-64 animate-pulse flex-col items-center justify-center text-subtle">
+            <p className="eyebrow text-accent">Output</p>
+            <p className="mt-3 text-sm">Drafting a tailored appeal for your denial…</p>
           </div>
         )}
 
         {result && (
           <div>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Your appeal letter</h2>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+              <div>
+                <p className="eyebrow text-accent">Output</p>
+                <h2 className="mt-1 text-lg font-bold text-foreground">Your appeal letter</h2>
+              </div>
+              <span className="eyebrow rounded-full bg-muted px-2 py-1 text-subtle">
                 {result.source === "ai" ? "AI-generated" : "Template"}
               </span>
             </div>
 
             {result.keyPoints.length > 0 && (
-              <ul className="mt-3 space-y-1 rounded-lg bg-blue-50 p-3 text-sm text-slate-700">
+              <ul className="mt-3 space-y-1 rounded-md bg-accent-soft p-3 text-sm text-foreground">
                 {result.keyPoints.map((p, i) => (
                   <li key={i} className="flex gap-2">
-                    <span className="text-blue-600">✓</span>
+                    <span className="text-accent">✓</span>
                     {p}
                   </li>
                 ))}
@@ -260,20 +265,20 @@ export function AppealTool() {
             <div className="mt-4 flex gap-2">
               <button
                 onClick={handleDownload}
-                className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                className="flex-1 rounded-md bg-ink px-3 py-2 text-sm font-semibold text-paper transition hover:bg-ink/85"
               >
                 ⬇ Download PDF
               </button>
               <button
                 onClick={handleCopy}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="rounded-md border border-line px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
 
-            <div className="mt-4 max-h-80 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="letter-body text-slate-800">{result.letter}</div>
+            <div className="mt-4 max-h-80 overflow-auto rounded-md border border-line bg-muted p-4">
+              <div className="letter-body text-foreground">{result.letter}</div>
             </div>
 
             <div className="mt-6">
@@ -293,7 +298,7 @@ export function AppealTool() {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+  "w-full rounded-md border border-line bg-paper px-3 py-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft";
 
 function Field({
   label,
@@ -306,9 +311,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">
+      <span className="mb-1 block text-sm font-medium text-foreground">
         {label}
-        {required && <span className="text-red-500"> *</span>}
+        {required && <span className="text-accent"> *</span>}
       </span>
       {children}
     </label>
