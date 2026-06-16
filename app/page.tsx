@@ -144,6 +144,52 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Competitive positioning */}
+      <section className="mx-auto max-w-5xl px-4 py-16">
+        <div className="rounded-xl border border-line bg-paper p-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="eyebrow text-accent">How we compare</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+                The only free, instant, no-account appeal generator
+              </h2>
+              <p className="mt-2 text-sm text-subtle max-w-xl">
+                Claimable charges $50/case and covers only 28 conditions. DoNotPay was fined by the
+                FTC in 2025. Counterforce Health is a nonprofit with no PDF export. AppealForge is
+                free, handles any denial type, and exports client-side — your data never leaves your
+                browser.
+              </p>
+            </div>
+            <Link
+              href="/competitive-analysis"
+              className="shrink-0 rounded-md border border-accent/40 px-5 py-3 text-sm font-semibold text-accent transition hover:bg-accent/5"
+            >
+              See full comparison →
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "Claimable", detail: "$50 / case" },
+              { label: "DoNotPay", detail: "FTC fined 2025" },
+              { label: "Sheer Health", detail: "App install required" },
+              { label: "AppealForge", detail: "Free · instant · private", highlight: true },
+            ].map((c) => (
+              <div
+                key={c.label}
+                className={`rounded-lg border px-4 py-3 text-sm ${
+                  c.highlight
+                    ? "border-accent/40 bg-accent-soft text-accent font-semibold"
+                    : "border-line text-subtle"
+                }`}
+              >
+                <div className="font-semibold text-foreground">{c.label}</div>
+                <div className="mt-0.5">{c.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Affiliate resources */}
       <section className="mx-auto max-w-5xl px-4">
         <AffiliateResources />

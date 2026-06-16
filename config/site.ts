@@ -49,6 +49,7 @@ export const supabaseConfig = {
 export const navLinks = [
   { href: "/", label: "Appeal Generator" },
   { href: "/guides", label: "Guides" },
+  { href: "/competitive-analysis", label: "Competition" },
   { href: "/about", label: "About" },
 ] as const;
 
